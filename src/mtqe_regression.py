@@ -9,8 +9,7 @@ from sklearn.metrics import mean_absolute_error
 import scipy.io as sio
 from sklearn.utils import shuffle
 
-from mtl.omtl import PAMTLRegressor, \
-    compound_descriptor_at_once, compound_descriptor
+from mtl.omtl import compound_descriptor_at_once, compound_descriptor
 from mtl.partl_regression import PARTLRegressor
 from stl.pa_regression import PARegressor
 import scipy as sp
@@ -27,12 +26,10 @@ def main():
     shuffles = int(sys.argv[1])
     start = int(sys.argv[2])
     work_dir = sys.argv[3]
-    # domains = ["it", "ted", "wsd"]
     domains = ["e-learning", "mf", "it", "ted"]
 
     for seed in range(start, start + shuffles, 1):
         # print "### ", seed
-        # input_dir = work_dir + os.sep + "stl_" + str(seed) + os.sep
         input_dir = work_dir + os.sep + "matlab_" + str(seed) + os.sep
 
         glob_path = input_dir + os.sep + "mats/*.mat"
@@ -142,37 +139,6 @@ def main():
 
             models_perform["pooling"]["all"][prop] = mae
             models_params["pooling"]["all"].append(search_pooling.best_params_)
-
-
-            # ### PAMTL-ipl
-            pamtl_ipl = PAMTLRegressor(len(domains), 18, interaction="ipl", loss="pai", n_iter=1)
-            np.random.seed(seed)
-            param_dist = {"C": sp.stats.expon(scale=10),
-                          "epsilon": sp.stats.expon(scale=.1),
-                        }
-
-            search_ipl = RandomizedSearchCV(pamtl_ipl, param_dist,
-                                            n_iter=n_iter,
-                                            scoring="mean_absolute_error",
-                                            n_jobs=n_jobs, iid=False,
-                                            refit=True,
-                                            cv=cv_folds, verbose=1,
-                                            random_state=seed)
-            search_ipl.fit(Xc_train, yc_train)
-            print search_ipl.best_params_
-            y_preds = np.clip(search_ipl.predict(Xc_test), 0, 1)
-            predfname = pred_dir + os.sep + "pamtl-ipl." + str(
-                prop) + ".all.preds"
-            np.savetxt(predfname, y_preds, fmt="%2.8f")
-            modfname = pred_dir + os.sep + "pamtl-ipl." + str(
-                prop) + ".all.model"
-            np.savetxt(modfname, search_ipl.best_estimator_.coef_)
-
-            mae = mean_absolute_error(yc_test, y_preds)
-            print "PAMTL-ipl mae =", mae
-
-            models_perform["pamtl-ipl"]["all"][prop] = mae
-            models_params["pamtl-ipl"]["all"].append(search_ipl.best_params_)
 
 
             training_size = Xc_train.shape[0]

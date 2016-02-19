@@ -30,10 +30,7 @@ class PARTLRegressor(BaseEstimator, RegressorMixin):
 
 
         # initialize interaction matrix with independent learners
-        # self.A = 1.0/task_num * np.identity(feats_num)
         self.A = 1.0 / task_num * np.identity(task_num)
-        # self.A = np.identity(task_num)
-        # self.A = np.linalg.inv(self.A)
 
         # hyper-parameters
         self.C = C
@@ -122,7 +119,7 @@ class PARTLRegressor(BaseEstimator, RegressorMixin):
         y = check_array(y)
 
         for x_i, y_i in izip(X, y):
-            self.partial_fit(x_i, y_i)
+            self.partial_fit(x_i.reshape(-1, 1), y_i.reshape(1, -1))
 
         return self
 
@@ -150,6 +147,7 @@ class PARTLRegressor(BaseEstimator, RegressorMixin):
 
             # calculates difference between prediction and actual value
             discrepancy_t = np.abs(y_hat_t - y_t)
+            #print discrepancy_t.shape, discrepancy_t
 
 
             # wx_dot = np.dot(self.coef_, X_t)
